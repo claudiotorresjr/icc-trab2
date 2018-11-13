@@ -22,43 +22,105 @@ void multMatMat(double *pri, double *sec, long int dgn, long int tam, double *mu
 	long int i, j, k;
 	double soma = 0.0;
 
-	long int numZerosJ = dgn/2;	
-	long int col = dgn - dgn/2;
-	long int cJ = 0;
+	long int numZerosJ;	
+	long int col;
+	long int colJ;
+	long int tamJ;
+	long int iniJ;
+	long int cJ;
 
-	long int cK = 0;
-	long int numZerosK = dgn/2;	
+	long int cK;
+	long int numZerosK;	
 	long int colK;
-	//long int c;
 
-	for(i = 0; i < tam; ++i){
+	col = dgn;
+	colK = dgn - dgn/2;
+	for(i = 0; i < dgn/2; ++i){
 		numZerosK = dgn/2;
-		colK = dgn - dgn/2;
-		//if(cK > cJ){
-		//	cK = cJ;
-		//}
-		for(j = 0; j < tam; ++j){
-			for(k = cK; (k < col) && (k < colK); ++k){
+		cK = 0;
+
+		for(j = 0; j < col; ++j){
+			for(k = cK; (k < colK) && k < (dgn/2 + 1 + j); ++k){
 				soma = soma + pri[i*dgn + (dgn/2 - i) + k]*sec[k*dgn + (dgn/2 - k) + j];
+				//printf("(%ld, %ld)*(%ld, %ld)\n", i, k, k, j);
 			}
 			mult[i*(dgn*2 - 1) + ((dgn*2 - 1)/2 - i) + j] = soma;
+			//printf("%lf\n", soma);
 			soma = 0.0;
-			colK++;
 			numZerosK--;
+			if(numZerosK < 0){
+				cK++;
+			}
+		}
+		colK++;
+		col++;
+	}
+	
+	col = dgn + dgn/2;
+	colJ = dgn - dgn/2 - 1;
+	numZerosJ = 0;
+	tamJ = dgn;	
+	iniJ = 0;
+	cK = 0;
+	cJ = 0;
+	for(i = dgn/2; i < (tam - dgn/2); ++i){
+		numZerosK = dgn/2;
+		colK = dgn - dgn/2;
+
+		for(j = iniJ; (j < col) && (j < tam); ++j){
+			for(k = cK; ((k < tamJ) || (k < colK)) && (k < tam); ++k){
+				soma = soma + pri[i*dgn + (dgn/2 - i) + k]*sec[k*dgn + (dgn/2 - k) + j];
+				//printf("(%ld, %ld)*(%ld, %ld)\n", i, k, k, j);
+			}
+			mult[i*(dgn*2 - 1) + ((dgn*2 - 1)/2 - i) + j] = soma;
+			//printf("%lf\n", soma);
+			soma = 0.0;
+			numZerosK--;
+			colK++;
 			if(numZerosK < 0){
 				if(abs(numZerosK) > abs(numZerosJ)){
 					cK = abs(numZerosK);
 				}
 			}
+
 		}
 		col++;
+		tamJ++;
+		colJ++;
 		numZerosJ--;
 		if(numZerosJ < 0){
+			if(abs(numZerosJ) > dgn/2){
+				iniJ++;
+			}	
 			cJ++;
 			cK = cJ;
 		}else{
 			cK = 0;
 		}
+	}
+
+	colK = 1;
+	for(i = tam - dgn/2; i < tam; ++i){
+		numZerosK = dgn - 1;
+		cK = tam - dgn + 1;
+		colK = cK;
+		colJ = tam - (dgn + 2);
+
+		for(j = colJ; j < tam; ++j){
+			for(k = cK; (k < colK + 1) && (k < tam); ++k){
+				soma = soma + pri[i*dgn + (dgn/2 - i) + k]*sec[k*dgn + (dgn/2 - k) + j];
+				//printf("(%ld, %ld)*(%ld, %ld)\n", i, k, k, j);
+			}
+			mult[i*(dgn*2 - 1) + ((dgn*2 - 1)/2 - i) + j] = soma;
+			//printf("%lf\n", soma);
+			soma = 0.0;
+			numZerosK--;
+			colK++;
+			if(numZerosK < 0){
+				cK++;
+			}
+		}
+		colJ++;
 	}
 }
 
@@ -177,9 +239,11 @@ void preCondicionador(double p, double *M, double *A, parametro par){
 		}
 	}else if(p > 0.0 && p < 1.0){//pre-condicionador de jacobi
 		long int numZeros = par.k/2;
+		long int passo = (par.k*2 - 1)/2;
 
-		for(i = 0; i < (par.n + numZeros); ++i){
-			M[i + par.k/2] = A[i*(par.k*2 - 1) + ((par.k*2 - 1)/2 - i) + i];
+		for(i = par.k/2; i < (par.n + numZeros); ++i){
+			M[i] = A[passo];
+			passo += par.k*2 - 1;
 		}
 
 	}else{//pré-condicionador de Gauss-Seidel p/ x = 1 e pré-condicionador SSOR p/ 1 < x < 2 
@@ -420,10 +484,21 @@ int gradienteConjugado(double *A, double *B, parametro par){
 	//transforma A em uma matriz positiva simetrica
 	trasformaSistema(A, B, Atf, Btf, par);
 	//acha pre-condicionador
-	//preCondicionador(par.p, M, Atf, par);
-	for(i = 0; i < (par.n + numZeros); ++i){
-		M[i + par.k/2] = Atf[i*(par.k*2 - 1) + ((par.k*2 - 1)/2 - i) + i];
+	preCondicionador(par.p, M, Atf, par);
+	
+	/*for (int i = 0; i < (par.k*2 - 1)*par.n; ++i){
+		if(i != 0 && i%(par.k*2 - 1) == 0)
+			printf("\n");
+		printf("%lf ", Atf[i]);
+
 	}
+	printf("\n");
+
+	for (int i = par.k/2; i < (par.n + numZeros); ++i)
+	{
+		printf("%lf ", M[i]);
+	}
+	printf("\n"); */
 
 	t_pc.fim = timestamp();
 	t_pc.dif = t_pc.fim - t_pc.ini;
@@ -458,6 +533,7 @@ int gradienteConjugado(double *A, double *B, parametro par){
 	//aux = y^t * r
 	aux = multVetVet(y, r, par.k, par.n);
 
+	//printf("%lf\n", aux);
 	//it == 1 pois a it 0 foi feito fora do for
 	for(it = 1; it <= par.i; it++){
 		t_it.ini = timestamp();
