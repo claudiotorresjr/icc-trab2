@@ -2,39 +2,46 @@
 # GRR20171607 Gabriela Stein
 # -----------------------------------------------------------------------------
 
-    CC     = gcc -std=c11 -g
-    CFLAGS = -Wall
-    LFLAGS = -lm 
+	CC = gcc -std=c11 -g -O3 -mavx -march=native
+    CFLAGS = $(LIKWID_FLAGS) -Wall
+	LFLAGS = $(LIKWID_LIBS) -lm
 
-      PROG = cgSolver
-      OBJS = utils.o \
+    PROG = cgSolver
+    OBJS = utils.o \
              sistemarandom.o \
              gradienteconjugado.o \
              $(PROG).o
 
-.PHONY: doc purge clean all
+    MODULOS   = matriz utils
+
+    LIKWID = /home/soft/likwid
+	LIKWID_FLAGS = -I$(LIKWID)/include
+	LIKWID_LIBS = -L$(LIKWID)/lib
+
+.PHONY: all clean limpa purge faxina distclean debug avx likwid
 
 %.o: %.c %.h utils.h
-	$(CC) -c $(CFLAGS) $<
+	$(CC) $(CFLAGS) -c $<
 
-$(PROG): $(OBJS)
-	$(CC) -o $@ $^ $(LFLAGS) $(INCLUDES) 
+all: $(PROG)
 
+debug:     CFLAGS += -DDEBUG
 
-%.o: %.c %.h 
-	$(CC) -c $(CFLAGS) -o $@ $<
+likwid:    CFLAGS += -DLIKWID_PERFMON
+likwid:    LFLAGS += -llikwid
 
-all: $(PROG) doc
+likwid debug: $(PROG)
 
-doc: Doc
-	doxygen $<
+$(PROG):  $(PROG).o
 
-Doc:
-	doxygen -g
+$(PROG): $(OBJS) 
+	$(CC) $(CFLAGS) -o $@ $^ $(LFLAGS)
 
 clean:
-	rm -rf *~ *.bak 
+	@echo "Limpando ...."
+	@rm -f *~ *.bak *.tmp
 
-purge: clean
-	rm -rf html
-	rm -f *.o $(PROG)
+purge distclean:   clean
+	@echo "Faxina ...."
+	@rm -f  $(PROG) *.o core a.out
+	@rm -f marker.out *.log
