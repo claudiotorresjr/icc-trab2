@@ -31,6 +31,8 @@ void multMatMat(double *pri, double *sec, long int dgn, long int tam, double *mu
 
 	long int cK;
 	long int numZerosK;	
+	long int salvaZero;	
+	long int salvaColK;	
 	long int colK;
 
 	col = dgn;
@@ -57,26 +59,37 @@ void multMatMat(double *pri, double *sec, long int dgn, long int tam, double *mu
 	}
 	
 	col = dgn + dgn/2;
-	colJ = dgn - dgn/2 - 1;
+	colJ = dgn;
 	numZerosJ = 0;
-	tamJ = dgn;	
+	tamJ = dgn - dgn/2;
+	salvaZero = dgn/2;
 	iniJ = 0;
 	cK = 0;
 	cJ = 0;
 	for(i = dgn/2; i < (tam - dgn/2); ++i){
-		numZerosK = dgn/2;
+		numZerosK = salvaZero;
 		colK = dgn - dgn/2;
+		salvaColK = dgn - dgn/2 + iniJ;
 
 		for(j = iniJ; (j < col) && (j < tam); ++j){
-			for(k = cK; ((k < tamJ) || (k < colK)) && (k < tam); ++k){
+			
+			if(salvaColK > colJ){
+				colK = colJ;
+			}else{
+				colK = salvaColK;
+			}
+
+			for(k = cK; k < colK && k < tam; ++k){
 				soma = soma + pri[i*dgn + (dgn/2 - i) + k]*sec[k*dgn + (dgn/2 - k) + j];
-				//printf("(%ld, %ld)*(%ld, %ld)\n", i, k, k, j);
+				//printf("(%ld, %ld)*(%ld, %ld)-->cK %ld, numZerosK %ld \n", i, k, k, j, cK, numZerosK);
 			}
 			mult[i*(dgn*2 - 1) + ((dgn*2 - 1)/2 - i) + j] = soma;
 			//printf("%lf\n", soma);
 			soma = 0.0;
 			numZerosK--;
 			colK++;
+			tamJ++;
+			salvaColK++;
 			if(numZerosK < 0){
 				if(abs(numZerosK) > abs(numZerosJ)){
 					cK = abs(numZerosK);
@@ -85,15 +98,21 @@ void multMatMat(double *pri, double *sec, long int dgn, long int tam, double *mu
 
 		}
 		col++;
-		tamJ++;
 		colJ++;
 		numZerosJ--;
+		tamJ = dgn - dgn/2;
 		if(numZerosJ < 0){
 			if(abs(numZerosJ) > dgn/2){
 				iniJ++;
+				tamJ += iniJ;
+				salvaZero--;
 			}	
 			cJ++;
-			cK = cJ;
+			if(abs(numZerosJ) >= abs(numZerosK)){
+				cK = abs(numZerosJ);
+			}else{
+				cK = cJ;
+			}
 		}else{
 			cK = 0;
 		}
@@ -138,9 +157,10 @@ void multMatVet(double *pri, double *sec, long int inicio, long int dgn, long in
 	long int col = dgn - dgn/2;	
 	double soma = 0.0;
 
-	for(i = 0; i < tam; i++){
-		for(j = c; (j < col) && (j < tam); j++){
+	/*for(i = 0; i < dgn/2; ++i){
+		for(j = 0; j < col; ++j){
 			soma = soma + pri[i*dgn + (dgn/2 - i) + j]*sec[inicio + j];
+			printf("(%ld, %ld)*(%ld + %ld)\n", i, j, inicio, j);
 		}
 		mult[inicio + i] = soma;
 		soma = 0.0;
@@ -149,7 +169,25 @@ void multMatVet(double *pri, double *sec, long int inicio, long int dgn, long in
 		if(numZeros < 0){
 			c++;
 		}
-	}
+	} */
+
+
+
+
+
+	for(i = 0; i < tam; i++){
+		for(j = c; (j < col) && (j < tam); j++){
+			soma = soma + pri[i*dgn + (dgn/2 - i) + j]*sec[inicio + j];
+			//printf("(%ld, %ld)*(%ld + %ld)\n", i, j, inicio, j);
+		}
+		mult[inicio + i] = soma;
+		soma = 0.0;
+		col++;
+		numZeros--;
+		if(numZeros < 0){
+			c++;
+		}
+	} 
 }
 
 /**
@@ -326,8 +364,8 @@ void imprime_dados(double *erroIt, double *X, double norma, double pc, double it
 
 	fprintf(arqOut, "# ctj17 Cláudio Torres Júnior\n"); //# login1 Nome1
 	fprintf(arqOut, "# gs17 Gabriela Stein\n#\n"); //# login2 Nome2
-	for(long int i = 1; i <= iter; i++){
-		fprintf(arqOut, "# iter %ld: <||%lf||>\n", i, erroIt[i]); //# iter k: <||x||>
+	for(long int i = 0; i < iter; i++){
+		fprintf(arqOut, "# iter %ld: <||%lf||>\n", i+1, erroIt[i]); //# iter k: <||x||>
 	}
 	fprintf(arqOut, "# residuo: <||%lf||>\n", norma); //# residuo: <||r||>
 	fprintf(arqOut, "# Tempo PC: <%lf>\n", pc); //# Tempo PC: <tempo para cálculo do pré-condicionador>
@@ -535,11 +573,17 @@ int gradienteConjugado(double *A, double *B, parametro par){
 
 	//printf("%lf\n", aux);
 	//it == 1 pois a it 0 foi feito fora do for
-	for(it = 1; it <= par.i; it++){
+	for(it = 0; it < par.i; it++){
 		t_it.ini = timestamp();
 
 		//z = A*v
 		multMatVet(Atf, v, par.k/2, (par.k*2 - 1), par.n, z);
+
+		/*for (int i = par.k/2; i < (par.n + numZeros); ++i)
+		{
+			printf("%lf ", z[i]);
+		}
+		printf("\n"); */
 
 		s = aux/multVetVet(v, z, par.k, par.n);
 
@@ -632,10 +676,10 @@ int gradienteConjugado(double *A, double *B, parametro par){
 		norma = sqrtf(multVetVet(r, r, par.k, par.n)); //norma euclidiana do residuo
 		t_r.fim = timestamp();
 
-		imprime_dados(erroIt, X, norma, t_pc.dif, t_it.dif, t_r.dif, par, it-1);
-		fprintf(stderr, "O método não convergiu!\n");
+		imprime_dados(erroIt, X, norma, t_pc.dif, t_it.dif, t_r.dif, par, it);
+		//fprintf(stderr, "O método não convergiu!\n");
 	}
 
 	//liberaVet(M, X, r, v, z, y, Xant, erroAproximadoA, erroIt); 
-	return -1;
+	return -1; 
 }
