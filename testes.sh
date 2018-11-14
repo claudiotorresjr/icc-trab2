@@ -1,17 +1,13 @@
 #!/bin/bash
 
-#executar como ./perfctr <core> <grupo>
-#executa o programa matmult com matrizes de tamanho <inicio> até <fim> com passo <passo>
-#Deve-se passar o core a ser utilizado e indicador na linha de comando (L2CACHE, L3, FLOPS_DP e FLOPS_AVX)
-#o resultado é um arquivo com 4 colunas: ordem da matriz/vetor, resultados do indicador para cada uma 
-#das 3 funções
+#executar como ./testes.sh <core> <grupo>
 
 LIKWID_CMD="likwid-perfctr -C $1 -g $2 -m -O"
 
 cache="L2 miss ratio"
 cachebw="L3 bandwidth"
 flopsDP="Scalar MUOPS/s"
-flopsAVX="packed MUOPS/s"
+flopsAVX="Packed DP MFLOP/s"
 
 passo="$3"
 inicio="$4"
@@ -53,21 +49,32 @@ then
 else
 	padrao="$flopsAVX"
 fi
-#-----------------------------------------------------------------------
+#----------------------------V1-------------------------------------
 
-for i in 32 64 128 #256 512 1000 2000 4000 8000
+for i in 32 64 128 256 512 1000 2000 4000 8000
 do
 	${LIKWID_CMD} ./cgSolver -n $i -k 7 -p 0.5 -i 10 -e -o teste$i.txt > temp.tmp
 
 	printf "$(($i*8)) "
 	printf "$(grep "$padrao" temp.tmp | awk -F"," '{print $2}' | tr "\n" " ")\n"
 
-done > $2.tmp
+done > V1$2.tmp
+
+
+#----------------------------V2-------------------------------------
+for i in 32 64 128 256 512 1000 2000 4000 8000
+do
+	${LIKWID_CMD} ./trab2/cgSolver -n $i -k 7 -p 0.5 -i 10 -e -o teste$i.txt > temp.tmp
+
+	printf "$(($i*8)) "
+	printf "$(grep "$padrao" temp.tmp | awk -F"," '{print $2}' | tr "\n" " ")\n"
+
+done > V2$2.tmp
 
 #-----------------------------------------------------------------------
 #----------------gnuplot para fazer os graficos-------------------------
 gnuplot <<- EOF
-	set logscale x
+	set logscale x 2
 	set xlabel "N (bytes)"
 	set ylabel "$escolha"
 	set title "Medição de performance para $2"   
@@ -77,13 +84,14 @@ gnuplot <<- EOF
 	set style line 1 lc rgb "red" lw 2
 	set style line 2 lc rgb "orange" lw 2
 	set style line 3 lc rgb "green" lw 2
+	set style line 4 lc rgb "blue" lw 2
 
 	set term png
 	set output "$2.png"
-	plot "$2.tmp" using 1:2 ls 1 title 'multMatPtrVet' with lines, \
-	"$2.tmp" using 1:3 ls 2 title 'multMatRowVet' with lines, \
-	"$2.tmp" using 1:4 ls 3 title 'multMatColVet' with lines
+	plot "V1$2.tmp" using 1:2 ls 1 title 'OP1-V1' with lines, \
+	"V1$2.tmp" using 1:3 ls 2 title 'OP2-V1' with lines, \
+	"V2$2.tmp" using 1:2 ls 3 title 'OP1-V2' with lines, \
+	"V2$2.tmp" using 1:3 ls 4 title 'OP2-V2' with lines
 EOF
 
 rm *.tmp
-make purge
