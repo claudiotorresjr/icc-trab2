@@ -14,6 +14,7 @@
  * @brief Função que multiplica duas matrizes
  * @param pri Primeiro parametro: Matriz
  * @param sec Segundo parametro: Matriz
+ * @param dgn Número de diagonais da matriz
  * @param mult Resultado da multiplicação
  * @param tam Ordem da Matriz
 */
@@ -147,6 +148,8 @@ void multMatMat(double *pri, double *sec, long int dgn, long int tam, double *mu
  * @brief Função que multiplica uma matriz por um vetor
  * @param pri Primeiro parametro: Matriz
  * @param sec Segundo parametro: Vetor
+ * @param inicio Posição na qual os elementos do vetor começam
+ * @param dgn Número de diagonais
  * @param mult Resultado da multiplicação
  * @param tam Ordem da Matriz
 */
@@ -194,6 +197,7 @@ void multMatVet(double *pri, double *sec, long int inicio, long int dgn, long in
  * @brief Função que multiplica dois vetores
  * @param pri Primeiro parametro: Vetor
  * @param sec Segundo parametro: Vetor
+ * @param dgn Número de diagonais da matriz
  * @param tam Ordem da Matriz
 */
 
@@ -211,7 +215,10 @@ double multVetVet(double *pri, double *sec, long int dgn, long int tam){
 /**
  * @brief Função que transforma um sistema em um sistema simetrico e positivo definido
  * @param A matriz original
- * @param B vetor de termos independentes
+ * @param B vetor original de termos independentes
+ * @param Atf matriz A transformada em simetrica positiva definida
+ * @param Btf vetor B transformado
+ * @param par struct de parametros do sistema
  * @param tam Ordem da Matriz
 */
 
@@ -233,7 +240,7 @@ void trasformaSistema(double *A, double *B, double *Atf, double *Btf, parametro 
  * @brief Função que calcula a transposta de uma matriz
  * @param A matriz original
  * @param T matriz transposta
- * @param tam Ordem da Matriz
+ * @param par struct de parametros do sistema 
 */
 
 void transposta(double *A, double *T, parametro par){
@@ -259,7 +266,7 @@ void transposta(double *A, double *T, parametro par){
  * @param A matriz original
  * @param M matriz resultante do uso do pré condicionador
  * @param p Indica o pré-condicionador a ser utilizado
- * @param tam Ordem da Matriz
+ * @param par struct de parametros do sistema
 */
 
 void preCondicionador(double p, double *M, double *A, parametro par){
@@ -323,7 +330,7 @@ void preCondicionador(double p, double *M, double *A, parametro par){
 /**
  * @brief Função que encontra o maior valor de um vetor
  * @param V Vetor qualquer
- * @param tam Ordem da Matriz
+ * @param par struct de parametros do sistema
  * @return Retorna o maior valor
 */
 
@@ -454,8 +461,6 @@ void criaMatrizes(double *A, double *L, double *U, double *D, long int tam)
  * @param v M^(-1)*B
  * @param z Resultado para a matriz verdadeira * vetor resposta de M
  * @param y vetor soluçao para o sistema M*y = r
- * @param T matriz transposta
- * @param erroAproximadoR vetor para o erro aproximado relativo
  * @param erroAproximadoA vetor para o erro aproximado absoluto
  * @param erroIt vetor para o erro maximo de cada iteração
 */
