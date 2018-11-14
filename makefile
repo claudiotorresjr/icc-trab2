@@ -14,9 +14,9 @@
 
     MODULOS   = matriz utils
 
-    LIKWID = /home/soft/likwid
-	LIKWID_FLAGS = -I$(LIKWID)/include
-	LIKWID_LIBS = -L$(LIKWID)/lib
+       LIKWID = /home/soft/likwid
+ LIKWID_FLAGS = -DLIKWID_PERFMON -I$(LIKWID)/include
+  LIKWID_LIBS = -L$(LIKWID)/lib -llikwid
 
 .PHONY: all clean limpa purge faxina distclean debug avx likwid
 

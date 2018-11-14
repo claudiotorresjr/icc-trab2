@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#executar como ./perfctr 
+#executar como ./perfctr <core> <grupo>
 #executa o programa matmult com matrizes de tamanho <inicio> até <fim> com passo <passo>
 #Deve-se passar o core a ser utilizado e indicador na linha de comando (L2CACHE, L3, FLOPS_DP e FLOPS_AVX)
 #o resultado é um arquivo com 4 colunas: ordem da matriz/vetor, resultados do indicador para cada uma 
@@ -55,11 +55,14 @@ else
 fi
 #-----------------------------------------------------------------------
 
-for i in 32 64 128 256 512 1000 2000 4000 8000
+for i in 32 64 128 #256 512 1000 2000 4000 8000
 do
-	./cgSolver -n $i -k 7 -p 0.5 -i 10 -e -o teste$i.txt
+	${LIKWID_CMD} ./cgSolver -n $i -k 7 -p 0.5 -i 10 -e -o teste$i.txt > temp.tmp
 
-done
+	printf "$(($i*8)) "
+	printf "$(grep "$padrao" temp.tmp | awk -F"," '{print $2}' | tr "\n" " ")\n"
+
+done > $2.tmp
 
 #-----------------------------------------------------------------------
 #----------------gnuplot para fazer os graficos-------------------------
@@ -81,3 +84,6 @@ gnuplot <<- EOF
 	"$2.tmp" using 1:3 ls 2 title 'multMatRowVet' with lines, \
 	"$2.tmp" using 1:4 ls 3 title 'multMatColVet' with lines
 EOF
+
+rm *.tmp
+make purge

@@ -148,8 +148,6 @@ void opcoes(int argc, char *argv[], parametro *par){
 
 int main (int argc, char *argv[])
 {
-	
-	LIKWID_MARKER_INIT;
 	long int i, j, col, numZeros, c;
 	parametro par;
 
@@ -235,7 +233,6 @@ int main (int argc, char *argv[])
 	free(A);
 	free(B);
 
-  	LIKWID_MARKER_CLOSE;
 	return(0);
 }
 

@@ -467,6 +467,8 @@ void liberaVet(double *M, double *X, double *r, double *v, double *z,
 
 int gradienteConjugado(double *A, double *B, parametro par){
 
+	LIKWID_MARKER_INIT;
+
 	int convergiu = 0;
 	long int numZeros = par.k/2;
 
@@ -654,5 +656,6 @@ int gradienteConjugado(double *A, double *B, parametro par){
 	liberaVet(M, X, r, v, z, y, Xant, erroAproximadoA, erroIt, Atf, Btf); 
 	LIKWID_MARKER_STOP("OP1");
 
+  	LIKWID_MARKER_CLOSE;
 	return -1; 
 }
