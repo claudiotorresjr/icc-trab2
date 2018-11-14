@@ -157,24 +157,6 @@ void multMatVet(double *pri, double *sec, long int inicio, long int dgn, long in
 	long int col = dgn - dgn/2;	
 	double soma = 0.0;
 
-	/*for(i = 0; i < dgn/2; ++i){
-		for(j = 0; j < col; ++j){
-			soma = soma + pri[i*dgn + (dgn/2 - i) + j]*sec[inicio + j];
-			printf("(%ld, %ld)*(%ld + %ld)\n", i, j, inicio, j);
-		}
-		mult[inicio + i] = soma;
-		soma = 0.0;
-		col++;
-		numZeros--;
-		if(numZeros < 0){
-			c++;
-		}
-	} */
-
-
-
-
-
 	for(i = 0; i < tam; i++){
 		for(j = c; (j < col) && (j < tam); j++){
 			soma = soma + pri[i*dgn + (dgn/2 - i) + j]*sec[inicio + j];
@@ -368,9 +350,9 @@ void imprime_dados(double *erroIt, double *X, double norma, double pc, double it
 		fprintf(arqOut, "# iter %ld: <||%lf||>\n", i+1, erroIt[i]); //# iter k: <||x||>
 	}
 	fprintf(arqOut, "# residuo: <||%lf||>\n", norma); //# residuo: <||r||>
-	fprintf(arqOut, "# Tempo PC: <%lf>\n", pc); //# Tempo PC: <tempo para cálculo do pré-condicionador>
-	fprintf(arqOut, "# Tempo iter: <%lf>\n", it); //# Tempo iter: <tempo para resolver uma iteração do método>
-	fprintf(arqOut, "# Tempo residuo: <%lf>\n#\n%ld\n", r, par.n); //# Tempo residuo: <tempo para calcular o residuo do SL> 
+	fprintf(arqOut, "# Tempo PC: <%.15g>\n", pc); //# Tempo PC: <tempo para cálculo do pré-condicionador>
+	fprintf(arqOut, "# Tempo iter: <%.15g>\n", it); //# Tempo iter: <tempo para resolver uma iteração do método>
+	fprintf(arqOut, "# Tempo residuo: <%.15g>\n#\n%ld\n", r, par.n); //# Tempo residuo: <tempo para calcular o residuo do SL> 
 	for(long int i = par.k/2; i < (par.n + numZeros); i++){
 		fprintf(arqOut, "%.15g ", X[i]); //x_1 x_12 ... x_n
 	}
@@ -461,26 +443,19 @@ void criaMatrizes(double *A, double *L, double *U, double *D, long int tam)
 */
 
 void liberaVet(double *M, double *X, double *r, double *v, double *z, 
-	double *y, double *Xant, double *erroAproximadoA, double *erroIt){
+	double *y, double *Xant, double *erroAproximadoA, double *erroIt, double *Atf, double *Btf){
 
 	free(M);
-	printf("M\n");
 	free(X);
-	printf("X\n");
 	free(r);
-	printf("r\n");
 	free(v);
-	printf("v\n");
 	free(z);
-	printf("z\n");
 	free(y);
-	printf("y\n");
 	free(Xant);
-	printf("Xant\n");
 	free(erroAproximadoA);
-	printf("erroAproximadoA\n");
 	free(erroIt);
-	printf("erroIt\n");
+	free(Atf);
+	free(Btf);
 }
 
 /**
@@ -491,6 +466,7 @@ void liberaVet(double *M, double *X, double *r, double *v, double *z,
 */
 
 int gradienteConjugado(double *A, double *B, parametro par){
+
 	int convergiu = 0;
 	long int numZeros = par.k/2;
 
@@ -518,25 +494,15 @@ int gradienteConjugado(double *A, double *B, parametro par){
 	tempo t_it; //struct para usar o timestamp cada iteraçao
 	tempo t_r; //struct para usar o timestamp residuo
 
+	t_it.ini = timestamp();
 	t_pc.ini = timestamp();
+
+	LIKWID_MARKER_START("OP1"); //iteraçao
+
 	//transforma A em uma matriz positiva simetrica
 	trasformaSistema(A, B, Atf, Btf, par);
 	//acha pre-condicionador
 	preCondicionador(par.p, M, Atf, par);
-	
-	/*for (int i = 0; i < (par.k*2 - 1)*par.n; ++i){
-		if(i != 0 && i%(par.k*2 - 1) == 0)
-			printf("\n");
-		printf("%lf ", Atf[i]);
-
-	}
-	printf("\n");
-
-	for (int i = par.k/2; i < (par.n + numZeros); ++i)
-	{
-		printf("%lf ", M[i]);
-	}
-	printf("\n"); */
 
 	t_pc.fim = timestamp();
 	t_pc.dif = t_pc.fim - t_pc.ini;
@@ -571,7 +537,8 @@ int gradienteConjugado(double *A, double *B, parametro par){
 	//aux = y^t * r
 	aux = multVetVet(y, r, par.k, par.n);
 
-	//printf("%lf\n", aux);
+	t_it.fim = timestamp();
+	t_it.dif = t_it.fim - t_it.ini;
 	//it == 1 pois a it 0 foi feito fora do for
 	for(it = 0; it < par.i; it++){
 		t_it.ini = timestamp();
@@ -597,9 +564,15 @@ int gradienteConjugado(double *A, double *B, parametro par){
 		}
 
 		//r = r - s*z
+		LIKWID_MARKER_START("OP2");
+		t_r.ini = timestamp();
 		for(i = 0; i < (par.n + numZeros); ++i){
 			r[i] = r[i] - s*z[i];  //calculo do residuo
 		}
+		t_r.fim = timestamp();
+		t_r.dif = t_r.fim - t_r.ini;
+
+		LIKWID_MARKER_STOP("OP2");
 
 
 		//y = M-¹ * r
@@ -636,18 +609,18 @@ int gradienteConjugado(double *A, double *B, parametro par){
 
 		if(maxVetor(erroAproximadoA, par) < par.e && !convergiu){
 			//achou resultado
-			t_r.ini = timestamp();
+			//t_r.ini = timestamp();
 			//calcula a norma
 			norma = sqrtf(multVetVet(r, r, par.k, par.n)); //norma euclidiana do residuo
-			t_r.fim = timestamp();
-			t_r.dif = t_r.fim - t_r.ini;
+			//t_r.fim = timestamp();
+			//t_r.dif = t_r.fim - t_r.ini;
 			//imprime dados no arquivo
-			imprime_dados(erroIt, X, norma, t_pc.dif, t_it.dif, t_r.dif, par, it);
+			imprime_dados(erroIt, X, norma, t_pc.dif/1000, t_it.dif/(it + 1)/1000, t_r.dif/1000, par, it);
 			/*for(i = 0; i < par.n; i++)
 				printf("%lf ", X[i]);
 			printf("\n ");*/
 			if (par.op == 0){ //se falso, para as iterações
-				//liberaVet(M, X, r, v, z, y, Xant, erroAproximadoA, erroIt); 
+				liberaVet(M, X, r, v, z, y, Xant, erroAproximadoA, erroIt, Atf, Btf); 
 				return 0;
 			}else{
 				convergiu = 1;
@@ -669,17 +642,17 @@ int gradienteConjugado(double *A, double *B, parametro par){
 		}
 
 	t_it.fim = timestamp();
-	t_it.dif = t_it.fim - t_it.ini;
+	t_it.dif = t_it.dif + (t_it.fim - t_it.ini);
 	}
 	if (!convergiu){		
-		t_r.ini = timestamp();	
 		norma = sqrtf(multVetVet(r, r, par.k, par.n)); //norma euclidiana do residuo
-		t_r.fim = timestamp();
 
-		imprime_dados(erroIt, X, norma, t_pc.dif, t_it.dif, t_r.dif, par, it);
+		imprime_dados(erroIt, X, norma, t_pc.dif/1000, t_it.dif/(it + 1)/1000, t_r.dif/1000, par, it);
 		//fprintf(stderr, "O método não convergiu!\n");
 	}
 
-	//liberaVet(M, X, r, v, z, y, Xant, erroAproximadoA, erroIt); 
+	liberaVet(M, X, r, v, z, y, Xant, erroAproximadoA, erroIt, Atf, Btf); 
+	LIKWID_MARKER_STOP("OP1");
+
 	return -1; 
 }

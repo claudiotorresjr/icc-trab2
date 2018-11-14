@@ -39,20 +39,20 @@ fim="$5"
 #else
 #	make
 #fi
-#
-##---Confere os indicadores e salva o padrao que procuramos em cada um---
-#if [ "$2" == "L2CACHE" ]
-#then
-#	padrao="$cache"
-#elif [ "$2" == "L3" ]
-#then
-#	padrao="$cachebw"
-#elif [ "$2" == "FLOPS_DP" ]
-#then
-#	padrao="$flopsDP"
-#else
-#	padrao="$flopsAVX"
-#fi
+
+#---Confere os indicadores e salva o padrao que procuramos em cada um---
+if [ "$2" == "L2CACHE" ]
+then
+	padrao="$cache"
+elif [ "$2" == "L3" ]
+then
+	padrao="$cachebw"
+elif [ "$2" == "FLOPS_DP" ]
+then
+	padrao="$flopsDP"
+else
+	padrao="$flopsAVX"
+fi
 #-----------------------------------------------------------------------
 
 for i in 32 64 128 256 512 1000 2000 4000 8000
@@ -63,21 +63,21 @@ done
 
 #-----------------------------------------------------------------------
 #----------------gnuplot para fazer os graficos-------------------------
-#gnuplot <<- EOF
-#	set logscale x
-#	set xlabel "N (bytes)"
-#	set ylabel "$escolha"
-#	set title "Medição de performance para $2"   
-#	set style data point
-#	set style function line
-#
-#	set style line 1 lc rgb "red" lw 2
-#	set style line 2 lc rgb "orange" lw 2
-#	set style line 3 lc rgb "green" lw 2
-#
-#	set term png
-#	set output "$2.png"
-#	plot "$2.tmp" using 1:2 ls 1 title 'multMatPtrVet' with lines, \
-#	"$2.tmp" using 1:3 ls 2 title 'multMatRowVet' with lines, \
-#	"$2.tmp" using 1:4 ls 3 title 'multMatColVet' with lines
-#EOF
+gnuplot <<- EOF
+	set logscale x
+	set xlabel "N (bytes)"
+	set ylabel "$escolha"
+	set title "Medição de performance para $2"   
+	set style data point
+	set style function line
+
+	set style line 1 lc rgb "red" lw 2
+	set style line 2 lc rgb "orange" lw 2
+	set style line 3 lc rgb "green" lw 2
+
+	set term png
+	set output "$2.png"
+	plot "$2.tmp" using 1:2 ls 1 title 'multMatPtrVet' with lines, \
+	"$2.tmp" using 1:3 ls 2 title 'multMatRowVet' with lines, \
+	"$2.tmp" using 1:4 ls 3 title 'multMatColVet' with lines
+EOF

@@ -12,6 +12,8 @@
 #include <math.h>
 #include <string.h> /* memset */
 
+#include <likwid.h>
+
 // Parâmetros para teste de convergência
 
 /**
@@ -55,4 +57,4 @@ void criaMatrizes(double *A, double *L, double *U, double *D, long int tam);
 double maxVetor(double *V, parametro par);
 void Cholesky(double *M, long int tam);
 void liberaVet(double *M, double *X, double *r, double *v, double *z, 
-	double *y, double *Xant, double *erroAproximadoA, double *erroIt);
+	double *y, double *Xant, double *erroAproximadoA, double *erroIt, double *Atf, double *Btf);
