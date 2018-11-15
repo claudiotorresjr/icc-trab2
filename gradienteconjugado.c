@@ -556,19 +556,23 @@ int gradienteConjugado(double *A, double *B, parametro par){
 
 		//x = x + s*v
 		//erro aproximado absoluto
-		for(i = 0; i < (par.n + numZeros); i+=4){
+		for(i = 0; i < par.n; i+=4){
 			erroAproximadoA[i] = fabs(X[i] - (X[i] + s*v[i])); 
 			erroAproximadoA[i+1] = fabs(X[i+1] - (X[i+1] + s*v[i+1])); 
 			erroAproximadoA[i+2] = fabs(X[i+2] - (X[i+2] + s*v[i+2])); 
 			erroAproximadoA[i+3] = fabs(X[i+3] - (X[i+3] + s*v[i+3])); 
-		}
-
-		for(i = 0; i < (par.n + numZeros); i+=4){
+			erroAproximadoA[i+4] = fabs(X[i+4] - (X[i+4] + s*v[i+4])); 
 			X[i] = X[i] + s*v[i];
 			X[i+1] = X[i+1] + s*v[i+1];
 			X[i+2] = X[i+2] + s*v[i+2];
 			X[i+3] = X[i+3] + s*v[i+3];
+			X[i+4] = X[i+4] + s*v[i+4];
 		}
+		for(i = par.n; i < (par.n + numZeros); ++i){
+			erroAproximadoA[i] = fabs(X[i] - (X[i] + s*v[i])); 
+			X[i] = X[i] + s*v[i];
+		}
+
 
 		erroIt[it] = maxVetor(erroAproximadoA, par);
 
