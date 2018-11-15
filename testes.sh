@@ -64,7 +64,7 @@ done > V1$2.tmp
 #----------------------------V2-------------------------------------
 for i in 32 64 128 256 512 1000 2000 4000 8000
 do
-	${LIKWID_CMD} ./gSolver -n $i -k 7 -p 0.5 -i 10 -e -o teste$i.txt > temp.tmp
+	${LIKWID_CMD} ./cgSolver -n $i -k 7 -p 0.5 -i 10 -e -o teste$i.txt > temp.tmp
 
 	printf "$(($i*8)) "
 	printf "$(grep "$padrao" temp.tmp | awk -F"," '{print $2}' | tr "\n" " ")\n"
