@@ -548,28 +548,27 @@ int gradienteConjugado(double *A, double *B, parametro par){
 		//z = A*v
 		multMatVet(Atf, v, par.k/2, (par.k*2 - 1), par.n, z);
 
-		/*for (int i = par.k/2; i < (par.n + numZeros); ++i)
-		{
-			printf("%lf ", z[i]);
-		}
-		printf("\n"); */
-
 		s = aux/multVetVet(v, z, par.k, par.n);
 
 		//salva o vetor
-		for(i = 0; i < (par.n + numZeros); ++i)
-			Xant[i] = X[i];
+		//for(i = 0; i < (par.n + numZeros); ++i)
+		//	Xant[i] = X[i];
 
 		//x = x + s*v
+		//erro aproximado absoluto
 		for(i = 0; i < (par.n + numZeros); ++i){
+			erroAproximadoA[i] = fabs(X[i] - (X[i] + s*v[i])); 
 			X[i] = X[i] + s*v[i];
 		}
+
+		erroIt[it] = maxVetor(erroAproximadoA, par);
 
 		//r = r - s*z
 		LIKWID_MARKER_START("OP2");
 		t_r.ini = timestamp();
+		//calculo do residuo
 		for(i = 0; i < (par.n + numZeros); ++i){
-			r[i] = r[i] - s*z[i];  //calculo do residuo
+			r[i] = r[i] - s*z[i];  
 		}
 		t_r.fim = timestamp();
 		t_r.dif = t_r.fim - t_r.ini;
@@ -593,21 +592,6 @@ int gradienteConjugado(double *A, double *B, parametro par){
 				y[i] = soma / M[i*par.n + i];
 			}
 		}
-
-		//aux1 = r^t * r
-		//aux1 = multVetVet(r, r, par.n);
-
-		//erro aproximado absoluto
-		for(i = 0; i < (par.n + numZeros); ++i){
-			erroAproximadoA[i] = fabs(X[i] - Xant[i]); 
-		//	erroAproximadoR[i] = erroAproximadoA[i] / X[i];
-		}
-		erroIt[it] = maxVetor(erroAproximadoA, par);
-
-		//for(i = 0; i < par.n; i++)
-		//	printf("%lf\n", residuo[i]);
-
-		//printf("%lf\n", erroAproximado);
 
 		if(maxVetor(erroAproximadoA, par) < par.e && !convergiu){
 			//achou resultado
