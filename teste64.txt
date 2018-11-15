@@ -2,8 +2,8 @@
 # gs17 Gabriela Stein
 #
 # residuo: <||inf||>
-# Tempo PC: <1.81913375854492e-07>
-# Tempo iter: <1.84059143066406e-07>
+# Tempo PC: <1.62839889526367e-07>
+# Tempo iter: <1.6474723815918e-07>
 # Tempo residuo: <0>
 #
 64
