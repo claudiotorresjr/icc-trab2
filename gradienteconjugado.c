@@ -18,7 +18,7 @@
  * @param tam Ordem da Matriz
 */
 
-static inline void multMatMat(double *pri, double *sec, long int dgn, long int tam, double *mult){
+inline void multMatMat(double *pri, double *sec, long int dgn, long int tam, double *mult){
 	long int i, j, k;
 	double soma = 0.0;
 
@@ -151,7 +151,7 @@ static inline void multMatMat(double *pri, double *sec, long int dgn, long int t
  * @param tam Ordem da Matriz
 */
 
-static inline void multMatVet(double *pri, double *sec, long int inicio, long int dgn, long int tam, double *mult){
+inline void multMatVet(double *pri, double *sec, long int inicio, long int dgn, long int tam, double *mult){
 	long int i, j, c = 0;
 	long int numZeros = dgn/2;
 	long int col = dgn - dgn/2;	
@@ -179,7 +179,7 @@ static inline void multMatVet(double *pri, double *sec, long int inicio, long in
  * @param tam Ordem da Matriz
 */
 
-static inline double multVetVet(double *pri, double *sec, long int dgn, long int tam){
+inline double multVetVet(double *pri, double *sec, long int dgn, long int tam){
 	long int i;
 	double soma1, soma2, soma3, soma4, soma5;
 	long int numZeros = dgn/2;
@@ -204,7 +204,7 @@ static inline double multVetVet(double *pri, double *sec, long int dgn, long int
  * @param tam Ordem da Matriz
 */
 
-static inline void trasformaSistema(double *A, double *B, double *Atf, double *Btf, parametro par){
+inline void trasformaSistema(double *A, double *B, double *Atf, double *Btf, parametro par){
 	long int tam = par.n*par.k;
 
 	double *T = (double*)malloc(tam*sizeof(double));
@@ -225,7 +225,7 @@ static inline void trasformaSistema(double *A, double *B, double *Atf, double *B
  * @param tam Ordem da Matriz
 */
 
-static inline void transposta(double *A, double *T, parametro par){
+inline void transposta(double *A, double *T, parametro par){
 	long int i, j;
 	long int numZeros = par.k/2;
 	long int col = par.k - par.k/2;
@@ -251,7 +251,7 @@ static inline void transposta(double *A, double *T, parametro par){
  * @param tam Ordem da Matriz
 */
 
-static inline void preCondicionador(double p, double *M, double *A, parametro par){
+inline void preCondicionador(double p, double *M, double *A, parametro par){
 	long int i, j;
 
 	if(p == 0.0){//sem pre-condicionador
@@ -316,7 +316,7 @@ static inline void preCondicionador(double p, double *M, double *A, parametro pa
  * @return Retorna o maior valor
 */
 
-static inline double maxVetor(double *V, parametro par)
+inline double maxVetor(double *V, parametro par)
 {	
 	long int i;
 	long int numZeros = par.k/2;
@@ -341,7 +341,7 @@ static inline double maxVetor(double *V, parametro par)
  * @param iter Quantidade de iterações usadas pelo método
 */
 
-static inline void imprime_dados(double *erroIt, double *X, double norma, double pc, double it, double r, parametro par, long int iter)
+inline void imprime_dados(double *erroIt, double *X, double norma, double pc, double it, double r, parametro par, long int iter)
 {	
 	long int numZeros = par.k/2;
 	FILE *arqOut;
@@ -372,7 +372,7 @@ static inline void imprime_dados(double *erroIt, double *X, double norma, double
  * @param tam Ordem da Matriz
 */
 
-static inline void Cholesky(double *M, long int tam)
+inline void Cholesky(double *M, long int tam)
 {	
 	long int i, j, k;
 	
@@ -407,7 +407,7 @@ static inline void Cholesky(double *M, long int tam)
  * @param tam Ordem da Matriz
 */
 
-static inline void criaMatrizes(double *A, double *L, double *U, double *D, long int tam)
+inline void criaMatrizes(double *A, double *L, double *U, double *D, long int tam)
 {
 	long int i, j;
 	//cria a matriz upper
@@ -449,7 +449,7 @@ static inline void criaMatrizes(double *A, double *L, double *U, double *D, long
  * @param erroIt vetor para o erro maximo de cada iteração
 */
 
-static inline void liberaVet(double *M, double *X, double *r, double *v, double *z, 
+inline void liberaVet(double *M, double *X, double *r, double *v, double *z, 
 	double *y, double *Xant, double *erroAproximadoA, double *erroIt, double *Atf, double *Btf){
 
 	free(M);
