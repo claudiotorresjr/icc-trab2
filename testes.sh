@@ -19,8 +19,8 @@ fim="$5"
 
 #modprobe msr
 
-#export PATH=/home/soft/likwid/bin:/home/soft/likwid/sbin:$PATH
-#export LD_LIBRARY_PATH=/home/soft/likwid/lib:$LD_LIBRARY_PATH
+export PATH=/home/soft/likwid/bin:/home/soft/likwid/sbin:$PATH
+export LD_LIBRARY_PATH=/home/soft/likwid/lib:$LD_LIBRARY_PATH
 
 # Para obter lista de grupos de indicadores de performance:
 #      likwid-perfctr -a
