@@ -2,7 +2,7 @@
 # GRR20171607 Gabriela Stein
 # -----------------------------------------------------------------------------
 
-	CC = gcc -std=c11 -g -O3 -mavx -march=native
+	CC = gcc -std=c11 -g
     CFLAGS = $(LIKWID_FLAGS) -Wall
 	LFLAGS = $(LIKWID_LIBS) -lm
 
@@ -18,7 +18,7 @@
  LIKWID_FLAGS = -DLIKWID_PERFMON -I$(LIKWID)/include
   LIKWID_LIBS = -L$(LIKWID)/lib -llikwid
 
-.PHONY: all clean limpa purge faxina distclean debug avx likwid
+.PHONY: all clean limpa purge faxina distclean debug likwid
 
 %.o: %.c %.h utils.h
 	$(CC) $(CFLAGS) -c $<

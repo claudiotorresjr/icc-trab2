@@ -1,0 +1,24 @@
+-CPU executa as mesmas instruções em um vetor de dados ao mesmo tempo
+-registradores de 256 bits (16 registradores)
+--> chamados de YMM0-YMM15
+--> AVX acrescenta três typedefs: __m256, __m256de __m256i. Float, double(d) e inteiro(i) respectivamente
+-- usar o *arch=native* sinalizador do GCC para detectar os recursos da CPU e usá-los de acordo
+
+-fopt-info-vecou -fopt-info-vec-optimized: O compilador registrará quais loops (pela linha N °) estão sendo
+ 											otimizados para vetor.
+-fopt-info-vec-missed: Informações detalhadas sobre loops não sendo vetorizadas e muitas outras informações 
+						detalhadas.
+-fopt-info-vec-note: Informações detalhadas sobre todos os loops e otimizações que estão sendo feitos.
+-fopt-info-vec-all: Todas as opções anteriores juntas.
+-As funções intrínsecas do AVX usam a seguinte convenção de nomenclatura:
+				_<vector_size>_<intrin_op>_<suffix>
+
+	--><vector_size> é  mm256para vetores de 256 bits (AVX e AVX2) 
+	--><intrin_op> declara a operação da função intrínseca. Ou seja add, sub, mul, etc ...
+	--><suffix> indica o tipo de dados. psé para float, pdpara double, e ep<int_type>é para tipos de dados inteiros: 	
+				epi32para inteiro de 32 bits com sinal, epu16para inteiro de 16 bits sem sinal, etc.
+
+No GCC, o alinhamento de dados pode ser feito com esses atributos de variáveis: __attribute__((aligned(16))) __attribute__((aligned(32)))
+
+-->#define ALIGN __attribute__((aligned(32)))simplificar a declaração de alinhamento em variáveis.
+
