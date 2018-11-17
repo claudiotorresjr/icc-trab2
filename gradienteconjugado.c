@@ -181,20 +181,14 @@ inline void multMatVet(double *pri, double *sec, long int inicio, long int dgn, 
 
 inline double multVetVet(double *pri, double *sec, long int dgn, long int tam){
 	long int i;
-	double soma1, soma2, soma3, soma4, soma5;
+	double soma;
 	long int numZeros = dgn/2;
 
-	soma1 = soma2 = soma3 = soma4 = soma5 = 0.0;
-	for(i = 0; i < tam; i+=4){
-		soma1 = soma1 + pri[i]*sec[i];
-		soma2 = soma2 + pri[i+1]*sec[i+1]; 
-		soma3 = soma3 + pri[i+2]*sec[i+2]; 
-		soma4 = soma4 + pri[i+3]*sec[i+3]; 
+	soma = 0.0;
+	for(i = 0; i < tam + numZeros; ++i){
+		soma = soma + pri[i]*sec[i];
 	}
-	for(i = tam; i < (tam + numZeros); ++i){
-		soma5 = soma5 + pri[i]*sec[i]; 
-	}
-	return (soma1 + soma2 + soma3 + soma4 + soma5);
+	return soma;
 }
 
 /**
@@ -483,6 +477,7 @@ int gradienteConjugado(double *A, double *B, parametro par){
 	double *X = (double*)malloc((par.n + numZeros)*sizeof(double)); 		//vetor de 'chutes' iniciais
 	double *Xant = (double*)malloc((par.n + numZeros)*sizeof(double));
 	double *r = (double*)malloc((par.n + numZeros)*sizeof(double));		//residuo
+	double *residuo = (double*)malloc((par.n + numZeros)*sizeof(double));		//residuo
 	double *v = (double*)malloc((par.n + numZeros)*sizeof(double));		
 	double *z = (double*)malloc((par.n + numZeros)*sizeof(double));		
 	double *y = (double*)malloc((par.n + numZeros)*sizeof(double));	
@@ -563,42 +558,34 @@ int gradienteConjugado(double *A, double *B, parametro par){
 
 		//x = x + s*v
 		//erro aproximado absoluto
-		for(i = 0; i < par.n; i+=4){
-			erroAproximadoA[i] = fabs(X[i] - (X[i] + s*v[i])); 
-			erroAproximadoA[i+1] = fabs(X[i+1] - (X[i+1] + s*v[i+1])); 
-			erroAproximadoA[i+2] = fabs(X[i+2] - (X[i+2] + s*v[i+2])); 
-			erroAproximadoA[i+3] = fabs(X[i+3] - (X[i+3] + s*v[i+3])); 
-			X[i] = X[i] + s*v[i];
-			X[i+1] = X[i+1] + s*v[i+1];
-			X[i+2] = X[i+2] + s*v[i+2];
-			X[i+3] = X[i+3] + s*v[i+3];
-		}
-		for(i = par.n; i < (par.n + numZeros); ++i){
+		for(i = 0; i < (par.n + numZeros); ++i){
 			erroAproximadoA[i] = fabs(X[i] - (X[i] + s*v[i])); 
 			X[i] = X[i] + s*v[i];
 		}
-
 
 		erroIt[it] = maxVetor(erroAproximadoA, par);
 
 		//r = r - s*z
+		//calculo do residuo
+		for(i = 0; i < (par.n + numZeros); ++i){
+			r[i] = r[i] - s*z[i]; 
+		}
+
+		//calculo do residuo   residuo = B - A*X
 		LIKWID_MARKER_START("OP2");
 		t_r.ini = timestamp();
-		//calculo do residuo
-		for(i = 0; i < par.n; i+=4){
-			r[i] = r[i] - s*z[i]; 
-			r[i+1] = r[i+1] - s*z[i+1]; 
-			r[i+2] = r[i+2] - s*z[i+2]; 
-			r[i+3] = r[i+3] - s*z[i+3]; 
+
+		//residuo = A*X
+		multMatVet(A, X, par.k/2, par.k, par.n, residuo);
+		//residuo = B - residuo
+		for(i = 0; i < (par.n + numZeros); ++i){
+			residuo[i] = B[i] - residuo[i]; 
 		}
-		for(i = par.n; i < (par.n + numZeros); ++i){
-			r[i] = r[i] - s*z[i]; 
-		}
+
 		t_r.fim = timestamp();
 		t_r.dif = t_r.fim - t_r.ini;
 
 		LIKWID_MARKER_STOP("OP2");
-
 
 		//y = M-¹ * r
 		if(par.p < 1){
@@ -621,7 +608,7 @@ int gradienteConjugado(double *A, double *B, parametro par){
 			//achou resultado
 			//t_r.ini = timestamp();
 			//calcula a norma
-			norma = sqrtf(multVetVet(r, r, par.k, par.n)); //norma euclidiana do residuo
+			norma = sqrtf(multVetVet(residuo, residuo, par.k, par.n)); //norma euclidiana do residuo
 			//t_r.fim = timestamp();
 			//t_r.dif = t_r.fim - t_r.ini;
 			//imprime dados no arquivo
@@ -647,22 +634,17 @@ int gradienteConjugado(double *A, double *B, parametro par){
 		aux = aux1;
 
 		//v = y + m*v
-		for(i = 0; i < par.n; i+=4){
-			v[i] = y[i] - m*v[i]; 
-			v[i+1] = y[i+1] - m*v[i+1]; 
-			v[i+2] = y[i+2] - m*v[i+2]; 
-			v[i+3] = y[i+3] - m*v[i+3]; 
-		}
-		for(i = par.n; i < (par.n + numZeros); ++i){
-			v[i] = y[i] - m*v[i]; 
+		for(i = 0; i < (par.n + numZeros); ++i){
+			v[i] = y[i] + m*v[i]; 
 		}
 
 	t_it.fim = timestamp();
 	t_it.dif = t_it.dif + (t_it.fim - t_it.ini);
 	}
 	if (!convergiu){		
-		norma = sqrtf(multVetVet(r, r, par.k, par.n)); //norma euclidiana do residuo
-
+		norma = sqrtf(multVetVet(residuo, residuo, par.k, par.n)); //norma euclidiana do residuo
+printf("norma = %lf\n", norma);
+		
 		imprime_dados(erroIt, X, norma, t_pc.dif/1000, t_it.dif/(it + 1)/1000, t_r.dif/1000, par, it);
 		//fprintf(stderr, "O método não convergiu!\n");
 	}

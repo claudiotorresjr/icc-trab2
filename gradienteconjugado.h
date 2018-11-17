@@ -46,15 +46,16 @@ typedef struct tempo{
 	double dif;
 }tempo;
 
-inline void multMatMat(double *pri, double *sec, long int dgn, long int tam, double *mult);
-inline void multMatVet(double *pri, double *sec, long int inicio, long int dgn, long int tam, double *mult);
-inline double multVetVet(double *pri, double *sec, long int dgn, long int tam);
-inline void trasformaSistema(double *A, double *B, double *Atf, double *Btf, parametro par);
-inline void transposta(double *A, double *T, parametro par);
-inline void preCondicionador(double p, double *M, double *A, parametro par);
+void multMatMat(double *pri, double *sec, long int dgn, long int tam, double *mult);
+void multMatVet(double *pri, double *sec, long int inicio, long int dgn, long int tam, double *mult);
+double multVetVet(double *pri, double *sec, long int dgn, long int tam);
+void trasformaSistema(double *A, double *B, double *Atf, double *Btf, parametro par);
+void transposta(double *A, double *T, parametro par);
+void imprime_dados(double *erroIt, double *X, double norma, double pc, double it, double r, parametro par, long int iter);
+void preCondicionador(double p, double *M, double *A, parametro par);
 int gradienteConjugado(double *A, double *B, parametro par);
-inline void criaMatrizes(double *A, double *L, double *U, double *D, long int tam);
-inline double maxVetor(double *V, parametro par);
-inline void Cholesky(double *M, long int tam);
-inline void liberaVet(double *M, double *X, double *r, double *v, double *z, 
+void criaMatrizes(double *A, double *L, double *U, double *D, long int tam);
+double maxVetor(double *V, parametro par);
+void Cholesky(double *M, long int tam);
+void liberaVet(double *M, double *X, double *r, double *v, double *z, 
 	double *y, double *Xant, double *erroAproximadoA, double *erroIt, double *Atf, double *Btf);

@@ -188,7 +188,7 @@ int main (int argc, char *argv[])
 	for(i = numZeros; i < (par.n + numZeros); ++i){
 		B[i] = generateRandomB(par.k);
 	}
-
+	
 	//numZeros = par.k/2;
 	//col = par.k - par.k/2;
 	//c = 0;
@@ -203,10 +203,10 @@ int main (int argc, char *argv[])
 	//	}
 	//	printf("\n");
 	//}
-//
-//	//numZeros = par.k/2;
-//	//for(i = 0; i < (par.n + numZeros*2); ++i){
-//	//	printf("%.1lf\n", B[i]);
+
+	//numZeros = par.k/2;
+	//for(i = 0; i < (par.n + numZeros); ++i){
+	//	printf("%.1lf\n", B[i]);
 	//}
 
 	gradienteConjugado(A, B, par);
